@@ -2,8 +2,7 @@
 1. Структура проекта
 Проект "VKinder" имеет следующую структуру:
 
-lua
-Copy code
+
 VKinder/
 |-- main.py
 |-- bot/
