@@ -4,11 +4,17 @@ from bot.my_vk_api import VKApi  # Измененное имя файла
 
 def handle_message(vk_api, event):
     user_id = event.user_id
-    text = event.text
+    text = event.text.strip()
     print(f"Received message from user {user_id}: {text}")
-    vk_api.send_message(user_id, f"Вы написали: {text}")
+
+    try:
+        vk_api.send_message(user_id, f"Вы написали: {text}")
+        print("Message sent successfully.")
+    except Exception as e:
+        print(f"Error sending message: {e}")
 
     if text.lower() == '/start':
+        print("Received /start command")
         vk_api.send_message(user_id, 'Привет! Это бот. Выберите цифру от 1 до 3:')
         vk_api.send_message(user_id, '1. Начать поиск')
         vk_api.send_message(user_id, '2. Посмотреть избранных')
@@ -16,19 +22,24 @@ def handle_message(vk_api, event):
 
     elif text.isdigit() and 1 <= int(text) <= 3:
         selected_number = int(text)
+        print(f"User selected number {selected_number}")
         vk_api.send_message(user_id, f'Вы выбрали цифру {selected_number}. Теперь я могу начать поиск.')
 
         if selected_number == 1:
+            print("Starting search...")
             vk_api.send_message(user_id, 'Вы выбрали цифру 1. Начинаю поиск...')
             # Добавьте код для начала поиска и вывода информации о пользователях
         elif selected_number == 2:
+            print("Showing favorites...")
             vk_api.send_message(user_id, 'Вы выбрали цифру 2. Показываю избранных...')
             # Добавьте код для вывода списка избранных пользователей
         elif selected_number == 3:
+            print("Exiting program...")
             vk_api.send_message(user_id, 'Вы выбрали цифру 3. Выход из программы.')
             # Добавьте код для выхода из программы
 
     else:
+        print("Unknown command")
         vk_api.send_message(user_id, 'Я не понимаю. Пожалуйста, введите /start для начала.')
 
 def main():
