@@ -1,14 +1,16 @@
 import requests
 import json
+from vk_api import VkApi
 
 
-class VKapi:
+class VKApi:
 
     def __init__(self, vk_user_token, group_token):
         self.user_token = vk_user_token
         self.group_token = group_token
         self.api_version = "5.131"
         self.base_url = "https://api.vk.com/method/"
+        self.vk = VkApi(token=self.group_token)
 
     def send_message(self, user_id, message, attachment=None):
         """
