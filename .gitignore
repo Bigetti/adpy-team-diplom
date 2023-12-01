@@ -9,4 +9,5 @@ bot/__pycache__/
 .idea/
 data_base_dating/.idea/
 venv/
+__pycache__
 
