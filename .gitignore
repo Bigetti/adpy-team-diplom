@@ -3,4 +3,5 @@ avatar.png
 group_token
 token_user_id
 VKGroupToken.txt
-.idea
+.idea/
+venv/
