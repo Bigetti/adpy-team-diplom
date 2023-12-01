@@ -3,7 +3,12 @@ avatar.png
 group_token
 token_user_id
 VKGroupToken.txt
+<<<<<<< HEAD
 .idea
 secure_key
 links.txt
 bot/__pycache__/
+=======
+.idea/
+venv/
+>>>>>>> c1a74ce58155a246bb71f9fca4c3cc2f4953aa35
