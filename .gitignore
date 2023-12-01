@@ -4,3 +4,6 @@ group_token
 token_user_id
 VKGroupToken.txt
 .idea
+secure_key
+links.txt
+bot/__pycache__/

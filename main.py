@@ -56,6 +56,8 @@ def main():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             handle_message(vk_group_session, event)
 
+            # request = event.text
+
             # Добавьте обработку других команд
             # if event.text.lower() == '/start':
             #     vk_group_session.send_message(event.user_id, 'Привет! Это бот. Давай начнем!')
