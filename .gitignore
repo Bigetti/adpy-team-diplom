@@ -7,5 +7,6 @@ secure_key
 links.txt
 bot/__pycache__/
 .idea/
+data_base_dating/.idea/
 venv/
 

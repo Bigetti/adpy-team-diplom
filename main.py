@@ -1,6 +1,9 @@
-import time
+import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
-from bot.my_vk_api import VKApi  # Измененное имя файла
+from bot.my_vk_api import VKApi
+
+def write_msg(user_id, message):
+    vk.method('messages.send', {'user_id': user_id, 'message': message})
 
 def handle_message(vk_api, event):
     user_id = event.user_id
@@ -13,8 +16,8 @@ def handle_message(vk_api, event):
     except Exception as e:
         print(f"Error sending message: {e}")
 
-    if text.lower() == '/start':
-        print("Received /start command")
+    if text.lower() == 'привет':
+        print("Received привет command")
         vk_api.send_message(user_id, 'Привет! Это бот. Выберите цифру от 1 до 3:')
         vk_api.send_message(user_id, '1. Начать поиск')
         vk_api.send_message(user_id, '2. Посмотреть избранных')
@@ -42,6 +45,51 @@ def handle_message(vk_api, event):
         print("Unknown command")
         vk_api.send_message(user_id, 'Я не понимаю. Пожалуйста, введите /start для начала.')
 
+
+
+
+# Функция для отправки сообщения с правилами
+def send_help_message(vk_api, user_id):
+    vk_api.send_message(user_id, 'Добро пожаловать! Это бот. Вот некоторые команды, которые вы можете использовать:\n'
+                                  '/help - показать это сообщение снова\n'
+                                  '1. Начать поиск\n'
+                                  '2. Посмотреть избранных\n'
+                                  '3. Выйти',
+                       keyboard=json.dumps({
+                           "one_time": False,
+                           "buttons": [
+                               [
+                                   {
+                                       "action": {
+                                           "type": "text",
+                                           "payload": "{\"button\": \"1\"}",
+                                           "label": "1"
+                                       },
+                                       "color": "positive"
+                                   }
+                               ],
+                               [
+                                   {
+                                       "action": {
+                                           "type": "text",
+                                           "payload": "{\"button\": \"2\"}",
+                                           "label": "2"
+                                       },
+                                       "color": "positive"
+                                   }
+                               ],
+                               [
+                                   {
+                                       "action": {
+                                           "type": "text",
+                                           "payload": "{\"button\": \"3\"}",
+                                           "label": "3"
+                                       },
+                                       "color": "positive"
+                                   }
+                               ]
+                           ]
+                       }))
 def main():
     group_token = open("group_token").read().strip()
     user_token = "USER_ACCESS_TOKEN"
@@ -54,13 +102,17 @@ def main():
     for event in longpoll.listen():
         print(f"Received event: {event}")
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
+
+            user_id = event.user_id
+
+            # Отправляем команду /help, если пользователь ее запросил
+            if event.text.lower() == '/help':
+                send_help_message(vk_group_session, user_id)
+
             handle_message(vk_group_session, event)
 
-            # request = event.text
 
-            # Добавьте обработку других команд
-            # if event.text.lower() == '/start':
-            #     vk_group_session.send_message(event.user_id, 'Привет! Это бот. Давай начнем!')
+
 
 if __name__ == "__main__":
     main()
