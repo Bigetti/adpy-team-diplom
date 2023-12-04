@@ -1,167 +1,72 @@
 import vk_api
-from vk_api.longpoll import VkLongPoll, VkEventType
-from bot.my_vk_api import VKApi
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+import random
 
-def write_msg(user_id, message):
-    vk.method('messages.send', {'user_id': user_id, 'message': message})
+def write_msg(vk, user_id, message):
+    vk.messages.send(user_id=user_id, message=message, random_id=get_random_id())
 
-def handle_message(vk_api, event):
+def get_basic_keyboard():
+    keyboard = VkKeyboard(one_time=False)
+    keyboard.add_button('Один', color=VkKeyboardColor.PRIMARY, payload={'additional_info': 'some info'})
+    keyboard.add_button('Два', color=VkKeyboardColor.SECONDARY)
+    keyboard.add_button('Три', color=VkKeyboardColor.NEGATIVE)
+    keyboard.add_button('Старт', color=VkKeyboardColor.POSITIVE)
+    return keyboard
+
+def get_random_id():
+    return random.randint(1, 1000000)
+
+def send_help_message(vk, user_id):
+    rules_message = 'Добро пожаловать! Это бот. Вот некоторые команды, которые вы можете использовать:\n' \
+                    '1. Начать поиск\n' \
+                    '2. Посмотреть избранных\n' \
+                    '3. Добавить в блэклист\n' \
+                    '4. Выйти'
+
+    basic_keyboard = get_basic_keyboard()
+    random_id = get_random_id()
+
+    params = {
+        'user_id': user_id,
+        'message': rules_message,
+        'keyboard': basic_keyboard.get_keyboard(),
+        'random_id': random_id
+    }
+
+    vk.messages.send(**params)
+
+def handle_message(vk, event):
     user_id = event.user_id
     text = event.text.strip()
     print(f"Received message from user {user_id}: {text}")
 
     try:
-        vk_api.send_message(user_id, f"Вы написали: {text}")
-        print("Message sent successfully.")
+        vk.messages.send(user_id=user_id, message=f"Вы написали: {text}")
+        write_msg(vk, user_id, f'Бот ответил на ваше сообщение: {text}')
     except Exception as e:
+        print("Message sent successfully.")
         print(f"Error sending message: {e}")
 
-    if text.lower() == 'привет':
-        print("Received привет command")
-        vk_api.send_message(user_id, 'Привет! Это бот. Выберите цифру от 1 до 3:')
-        vk_api.send_message(user_id, '1. Начать поиск')
-        vk_api.send_message(user_id, '2. Посмотреть избранных')
-        vk_api.send_message(user_id, '3. Выйти')
+    send_help_message(vk, user_id)  # Отправляем правила после любого входящего сообщения
 
-    elif text.isdigit() and 1 <= int(text) <= 3:
-        selected_number = int(text)
-        print(f"User selected number {selected_number}")
-        vk_api.send_message(user_id, f'Вы выбрали цифру {selected_number}. Теперь я могу начать поиск.')
-
-        if selected_number == 1:
-            print("Starting search...")
-            vk_api.send_message(user_id, 'Вы выбрали цифру 1. Начинаю поиск...')
-            # Добавьте код для начала поиска и вывода информации о пользователях
-        elif selected_number == 2:
-            print("Showing favorites...")
-            vk_api.send_message(user_id, 'Вы выбрали цифру 2. Показываю избранных...')
-            # Добавьте код для вывода списка избранных пользователей
-        elif selected_number == 3:
-            print("Exiting program...")
-            vk_api.send_message(user_id, 'Вы выбрали цифру 3. Выход из программы.')
-            # Добавьте код для выхода из программы
-
-    else:
-        print("Unknown command")
-        vk_api.send_message(user_id, 'Я не понимаю. Пожалуйста, введите /start для начала.')
-
-
-
-
-# Функция для отправки сообщения с правилами
-def send_help_message(vk_api, user_id):
-    vk_api.send_message(user_id, 'Добро пожаловать! Это бот. Вот некоторые команды, которые вы можете использовать:\n'
-                                  '/help - показать это сообщение снова\n'
-                                  '1. Начать поиск\n'
-                                  '2. Посмотреть избранных\n'
-                                  '3. Выйти',
-                       keyboard=json.dumps({
-                           "one_time": False,
-                           "buttons": [
-                               [
-                                   {
-                                       "action": {
-                                           "type": "text",
-                                           "payload": "{\"button\": \"1\"}",
-                                           "label": "1"
-                                       },
-                                       "color": "positive"
-                                   }
-                               ],
-                               [
-                                   {
-                                       "action": {
-                                           "type": "text",
-                                           "payload": "{\"button\": \"2\"}",
-                                           "label": "2"
-                                       },
-                                       "color": "positive"
-                                   }
-                               ],
-                               [
-                                   {
-                                       "action": {
-                                           "type": "text",
-                                           "payload": "{\"button\": \"3\"}",
-                                           "label": "3"
-                                       },
-                                       "color": "positive"
-                                   }
-                               ]
-                           ]
-                       }))
 def main():
-    group_token = open("group_token").read().strip()
-    user_token = "USER_ACCESS_TOKEN"
+    group_token_path = "group_token"
+    group_id = 223624883
 
-    vk_group_session = VKApi(user_token, group_token)
-    longpoll = VkLongPoll(vk_group_session.vk)
+    with open(group_token_path, 'r') as group_token_file:
+        group_token = group_token_file.read().strip()
+
+    vk_group_session = vk_api.VkApi(token=group_token)
+    vk = vk_group_session.get_api()
+    longpoll = VkBotLongPoll(vk_group_session, group_id)
 
     print("Bot is running...")
 
     for event in longpoll.listen():
         print(f"Received event: {event}")
-        if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-
-            user_id = event.user_id
-
-            # Отправляем команду /help, если пользователь ее запросил
-            if event.text.lower() == '/help':
-                send_help_message(vk_group_session, user_id)
-
-            handle_message(vk_group_session, event)
-
-
-
+        if event.type == VkBotEventType.MESSAGE_NEW:
+            handle_message(vk, event)
 
 if __name__ == "__main__":
     main()
-
-# def handle_message(vk_api, user_id, message):
-#     print(f"Received message from user {user_id}: {message}")
-#     if message.lower() == '/start':
-#         vk_api.send_message(user_id, 'Привет! Я бот. Для начала работы напишите что-нибудь еще.')
-#         print("Sent response to /start command")
-#     else:
-#         vk_api.send_message(user_id, f"Вы написали: {message}")
-#         print("Sent response to other command")
-
-            # Добавьте обработку других команд
-
-    # vk_group_api = VKApi(user_token, group_token)
-    # vk_user_api = VKApi(user_token)
-
-    # # Основная логика работы бота
-    # while True:
-    #     # Получение новых событий/сообщений из группы
-    #     # Реализуйте эту часть, используя VK Long Poll API или Callback API
-    #
-    #     # Обработка каждого нового события
-    #     for event in new_events:
-    #         if event['type'] == 'message_new':
-    #             user_id = event['object']['message']['from_id']
-    #             text = event['object']['message']['text']
-    #
-    #             # Определение команд и выполнение соответствующих действий
-    #             if text.lower() == 'поиск':
-    #                 criteria = {}  # Задайте критерии поиска, возможно, через диалог с пользователем
-    #                 users = vk_group_api.search_users(criteria)
-    #
-    #                 for user in users:
-    #                     user_info = vk_group_api.get_user_info(user['id'])
-    #                     top_photos = vk_group_api.get_top_photos(user['id'])
-    #
-    #                     # Отправка информации о пользователе и фотографий
-    #                     vk_group_api.send_message(user_id,
-    #                                               f"{user_info['first_name']} {user_info['last_name']}\n{user_info['profile_link']}")
-    #                     for photo_url in top_photos:
-    #                         vk_group_api.send_message(user_id, attachment=photo_url)
-    #
-    #             elif text.lower() == 'избранные':
-    #                 favorites = vk_group_api.get_favorites()
-    #                 # Отправка списка избранных пользователей
-    #                 vk_group_api.send_message(user_id, str(favorites))
-    #
-    #             # Другие команды обработки
-
-

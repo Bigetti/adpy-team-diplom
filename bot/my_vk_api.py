@@ -1,6 +1,11 @@
-import requests
+
+from vk_api import VkApi, vk_api
 import json
-from vk_api import VkApi
+import vk_api
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+import random
+
 
 
 class VKApi:
@@ -12,24 +17,14 @@ class VKApi:
         self.base_url = "https://api.vk.com/method/"
         self.vk = VkApi(token=self.group_token)
 
-    def send_message(self, user_id, message, attachment=None):
-        """
-        Метод для отправки сообщения пользователю.
-
-        :param user_id: Идентификатор пользователя ВКонтакте.
-        :param message: Текст сообщения.
-        :param attachment: Вложение (например, фотография).
-        :return: Результат отправки (успех или ошибка).
-        """
-        params = {
-            'user_id': user_id,
-            'message': message,
-            'attachment': attachment,
-            'access_token': self.group_token,
-            'v': self.api_version
-        }
-        response = requests.post(self.base_url + 'messages.send', params=params)
-        return response.json()
+    def send_message(self, user_id, message, keyboard=None):
+        try:
+            params = {'user_id': user_id, 'message': message}
+            if keyboard:
+                params['keyboard'] = keyboard
+            self.vk.method('messages.send', params)
+        except vk_api.exceptions.ApiError as e:
+            raise Exception(f"Error sending message: {e}")
 
     def search_users(self, criteria):
         """
@@ -61,31 +56,3 @@ class VKApi:
         # Реализуйте логику получения информации о пользователе здесь
         pass
 
-    def add_to_favorites(self, user_id):
-        """
-        Метод для добавления пользователя в список избранных.
-
-        :param user_id: Идентификатор пользователя ВКонтакте.
-        :return: Результат операции (успех или ошибка).
-        """
-        # Реализуйте логику добавления пользователя в избранные здесь
-        pass
-
-    def add_to_black_list(self, user_id):
-        """
-        Метод для добавления пользователя в черный список.
-
-        :param user_id: Идентификатор пользователя ВКонтакте.
-        :return: Результат операции (успех или ошибка).
-        """
-        # Реализуйте логику добавления пользователя в черный список здесь
-        pass
-
-    def get_favorites(self):
-        """
-        Метод для получения списка избранных пользователей.
-
-        :return: Список избранных пользователей.
-        """
-        # Реализуйте логику получения списка избранных пользователей здесь
-        pass
