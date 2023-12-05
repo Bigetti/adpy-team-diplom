@@ -103,5 +103,6 @@ def main():
         if event.type == VkBotEventType.MESSAGE_NEW:
             handle_message(vk, event)
 
+
 if __name__ == "__main__":
     main()

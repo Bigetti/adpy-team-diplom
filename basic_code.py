@@ -3,14 +3,16 @@ from random import randrange
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 
-token = input('Token: ')
+import private_token
 
-vk = vk_api.VkApi(token=token)
+group_token = private_token.GROUP_TOKEN
+
+vk = vk_api.VkApi(token=group_token)
 longpoll = VkLongPoll(vk)
 
 
 def write_msg(user_id, message):
-    vk.method('messages.send', {'user_id': user_id, 'message': message,  'random_id': randrange(10 ** 7),})
+    vk.method('messages.send', {'user_id': user_id, 'message': message,  'random_id': randrange(10 ** 7), })
 
 
 for event in longpoll.listen():
@@ -18,7 +20,7 @@ for event in longpoll.listen():
 
         if event.to_me:
             request = event.text
-
+            print(event, event.to_me)
             if request == "привет":
                 write_msg(event.user_id, f"Хай, {event.user_id}")
             elif request == "пока":
