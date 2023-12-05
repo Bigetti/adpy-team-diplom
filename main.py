@@ -8,10 +8,11 @@ def write_msg(vk, user_id, message):
 
 def get_basic_keyboard():
     keyboard = VkKeyboard(one_time=False)
-    keyboard.add_button('Один', color=VkKeyboardColor.PRIMARY, payload={'additional_info': 'some info'})
-    keyboard.add_button('Два', color=VkKeyboardColor.SECONDARY)
-    keyboard.add_button('Три', color=VkKeyboardColor.NEGATIVE)
-    keyboard.add_button('Старт', color=VkKeyboardColor.POSITIVE)
+    keyboard.add_button('1', color=VkKeyboardColor.PRIMARY, payload={'additional_info': 'some info'})
+    keyboard.add_button('2', color=VkKeyboardColor.SECONDARY)
+    keyboard.add_button('3', color=VkKeyboardColor.NEGATIVE)
+    keyboard.add_button('4', color=VkKeyboardColor.POSITIVE)
+    keyboard.add_button('ХауТу', color=VkKeyboardColor.POSITIVE)
     return keyboard
 
 def get_random_id():
@@ -19,10 +20,11 @@ def get_random_id():
 
 def send_help_message(vk, user_id):
     rules_message = 'Добро пожаловать! Это бот. Вот некоторые команды, которые вы можете использовать:\n' \
-                    '1. Начать поиск\n' \
-                    '2. Посмотреть избранных\n' \
-                    '3. Добавить в блэклист\n' \
-                    '4. Выйти'
+                    '1. Ищем пару\n' \
+                    '2. Добавим в избранное\n' \
+                    '3. Покажем избранное\n' \
+                    '4. Добавим в БлэкЛист\n' \
+                    '5. ХАУТУ'
 
     basic_keyboard = get_basic_keyboard()
     random_id = get_random_id()
@@ -34,11 +36,35 @@ def send_help_message(vk, user_id):
         'random_id': random_id
     }
 
-    vk.messages.send(**params)
+    try:
+        vk.messages.send(**params)
+        print("Help message sent successfully.")
+    except Exception as e:
+        print("Error sending help message: {e}")
+
+def send_find_pair_message(vk, user_id):
+    print("find_pair")
+    response_message = 'Начинаем поиск пары для вас!'
+    write_msg(vk, user_id, response_message)
+
+def send_add_to_favorites(vk, user_id):
+    print("Add_to_favorites")
+    response_message = 'Добавляем в избранное!'
+    write_msg(vk, user_id, response_message)
+
+def send_show_favorites(vk, user_id):
+    print("Show_favorites")
+    response_message = 'Показываем избранное!'
+    write_msg(vk, user_id, response_message)
+
+def send_add_to_blacklist(vk, user_id):
+    print ("Add to blackList")
+    response_message = 'Добавляем в черный список!'
+    write_msg(vk, user_id, response_message)
 
 def handle_message(vk, event):
-    user_id = event.user_id
-    text = event.text.strip()
+    user_id = event.message['from_id']
+    text = event.message['text'].strip()
     print(f"Received message from user {user_id}: {text}")
 
     try:
@@ -48,7 +74,16 @@ def handle_message(vk, event):
         print("Message sent successfully.")
         print(f"Error sending message: {e}")
 
-    send_help_message(vk, user_id)  # Отправляем правила после любого входящего сообщения
+    if text == '1':
+        send_find_pair_message(vk, user_id)
+    elif text == '2':
+        send_add_to_favorites(vk, user_id)
+    elif text == '3':
+        send_show_favorites(vk, user_id)
+    elif text == '4':
+        send_add_to_blacklist(vk, user_id)
+    elif text=='ХауТу':
+        send_help_message(vk, user_id)  # Отправляем правила после любого входящего сообщения
 
 def main():
     group_token_path = "group_token"
