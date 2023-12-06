@@ -6,6 +6,7 @@ import random
 def write_msg(vk, user_id, message):
     vk.messages.send(user_id=user_id, message=message, random_id=get_random_id())
 
+
 def get_basic_keyboard():
     keyboard = VkKeyboard(one_time=False)
     keyboard.add_button('1', color=VkKeyboardColor.PRIMARY, payload={'additional_info': 'some info'})
@@ -42,10 +43,34 @@ def send_help_message(vk, user_id):
     except Exception as e:
         print("Error sending help message: {e}")
 
-def send_find_pair_message(vk, user_id):
+
+
+def send_find_pair_message(self, vk, user_id):
     print("find_pair")
     response_message = 'Начинаем поиск пары для вас!'
+
     write_msg(vk, user_id, response_message)
+
+    user_info = self.get_user_info(user_id=user_id)
+    vk.save_user_info(user_id, {'city_id': user_info.get('city_id', 1),
+                                'age_from': user_info.get('age_from', 18),
+                                'age_to': user_info.get('age_to', 30),
+                                'gender': user_info.get('gender', 1)})
+
+    search_result = vk.search_users(user_info.get('city_id', 1),
+                                    user_info.get('age_from', 18),
+                                    user_info.get('age_to', 30),
+                                    user_info.get('gender', 1))
+    if search_result:
+        for user in search_result:
+            user_message = f"Найден пользователь: {user['first_name']} {user['last_name']}"
+            print(user_message)
+            write_msg(vk, user_id, user_message)
+    else:
+        error_message = "Произошла ошибка при поиске пользователей."
+        print(error_message)
+        write_msg(vk, user_id, error_message)
+
 
 def send_add_to_favorites(vk, user_id):
     print("Add_to_favorites")
@@ -82,9 +107,8 @@ def handle_message(vk, event):
         send_show_favorites(vk, user_id)
     elif text == '4':
         send_add_to_blacklist(vk, user_id)
-    elif text=='ХауТу':
-        send_help_message(vk, user_id)  # Отправляем правила после любого входящего сообщения
-
+    elif text == 'ХауТу':
+        send_help_message(vk, user_id)
 def main():
     group_token_path = "group_token"
     group_id = 223624883
